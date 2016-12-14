@@ -158,18 +158,37 @@ class VerticaDialect(PGDialect):
 
     @reflection.cache
     def get_columns(self, connection, table_name, schema=None, **kw):
-        print('in get columns', table_name)
-        s = ("SELECT * FROM v_catalog.columns "
-             "WHERE table_name = '%s' ") % (table_name,)
-
-        spk = ("SELECT column_name FROM v_catalog.primary_keys "
-               "WHERE table_name = '%s' "
-               "AND constraint_type = 'p'") % (table_name)
-
         if schema is not None:
-            _pred = lambda p: ("%s AND table_schema = '%s'" % (p, schema))
-            s = _pred(s)
-            spk = _pred(spk)
+            schema_conditional = "AND table_schema = '{schema}'".format(schema=schema)
+        else:
+            schema_conditional = ""
+
+        s = """
+        SELECT
+          column_name,
+          data_type,
+          column_default,
+          is_nullable
+        FROM v_catalog.columns
+        where table_name = '{table_name}'
+        {schema_conditional}
+        UNION ALL
+        SELECT
+          column_name,
+          data_type,
+          '' as column_default,
+          true as is_nullable
+        FROM v_catalog.view_columns
+        where table_name = '{table_name}'
+        {schema_conditional}
+        """.format(table_name=table_name, schema_conditional=schema_conditional)
+
+        spk = """
+        SELECT column_name FROM v_catalog.primary_keys
+        WHERE table_name = '{table_name}'
+        AND constraint_type = 'p'
+        {schema_conditional}
+        """.format(table_name=table_name, schema_conditional=schema_conditional)
 
         pk_columns = [x[0] for x in connection.execute(spk)]
         columns = []

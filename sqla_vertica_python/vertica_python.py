@@ -226,7 +226,7 @@ class VerticaDialect(PGDialect):
 
         _schema_clause = ""
         if schema is not None:
-            _schema_clause = " table_schema ='"+ schema +"' AND "
+            _schema_clause = " AND i.table_schema ='"+ schema +"' "
 
         query = (
             " SELECT                                      \n"
@@ -235,9 +235,12 @@ class VerticaDialect(PGDialect):
             "  FROM                                       \n"
             "    v_catalog.table_constraints cons         \n"
             " WHERE                                       \n"
-            "   cons.table_name = '"+table_name+"' AND    \n"
-            "   "+_schema_clause+"                        \n"
-            "   cons.constraint_type = 'c'                "
+            "   cons.table_id =                           \n"
+            "        (select i.table_id from              \n"
+            "           v_catalog.tables i                \n"
+            "         where i.table_name='"+table_name+"'   \n"
+            "         "+_schema_clause+ " )               \n"
+            "   AND cons.constraint_type = 'c'              "
         )
 
         c = connection.execute(query)

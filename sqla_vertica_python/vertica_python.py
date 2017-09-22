@@ -224,6 +224,36 @@ class VerticaDialect(PGDialect):
 
         return result
 
+    @reflection.cache
+    def get_check_constraints(self, connection, table_name, schema=None, **kw):
+        query = """
+        SELECT
+            cons.constraint_name as name,
+            cons.predicate as src
+        FROM
+            v_catalog.table_constraints cons
+        WHERE
+            cons.table_id = (
+                SELECT
+                    i.table_id
+                FROM
+                    v_catalog.tables i]
+                WHERE
+                    i.table_name='{table_name}'
+                AND
+                    cons.constraint_type = 'c'
+                {schema_clause}
+            )
+        """.format(table_name=table_name, schema_clause=(
+            "" if schema is None else "AND i.table_schema ='{schema}'".format(schema)))
+
+        return [
+            {
+                'name': name,
+                'sqltext': src[1:-1]
+            } for name, src in connection.execute(query).fetchall()
+        ]
+
     # constraints are enforced on selects, but returning nothing for these
     # methods allows table introspection to work
 

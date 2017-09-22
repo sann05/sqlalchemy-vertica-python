@@ -155,15 +155,19 @@ class VerticaDialect(PGDialect):
         rs = connection.execute(' '.join(s))
         return [row[0] for row in rs]
 
-
     @reflection.cache
     def get_columns(self, connection, table_name, schema=None, **kw):
-        if schema is not None:
-            schema_conditional = "AND table_schema = '{schema}'".format(schema=schema)
-        else:
-            schema_conditional = ""
+        schema_conditional = (
+            "" if schema is None else "AND table_schema = '{schema}'".format(schema=schema))
 
-        s = """
+        pk_column_select = """
+        SELECT column_name FROM v_catalog.primary_keys
+        WHERE table_name = '{table_name}'
+        AND constraint_type = 'p'
+        {schema_conditional}
+        """.format(table_name=table_name, schema_conditional=schema_conditional)
+        primary_key_columns = tuple(row[0] for row in connection.execute(pk_column_select))
+        column_select = """
         SELECT
           column_name,
           data_type,
@@ -182,34 +186,15 @@ class VerticaDialect(PGDialect):
         where table_name = '{table_name}'
         {schema_conditional}
         """.format(table_name=table_name, schema_conditional=schema_conditional)
-
-        spk = """
-        SELECT column_name FROM v_catalog.primary_keys
-        WHERE table_name = '{table_name}'
-        AND constraint_type = 'p'
-        {schema_conditional}
-        """.format(table_name=table_name, schema_conditional=schema_conditional)
-
-        pk_columns = [x[0] for x in connection.execute(spk)]
-        columns = []
-        for row in connection.execute(s):
-            name = row.column_name
-            dtype = row.data_type.upper()
-            if '(' in dtype:
-                dtype = dtype.split('(')[0]
-            coltype = self.ischema_names[dtype]
-            primary_key = name in pk_columns
-            default = row.column_default
-            nullable = row.is_nullable
-
-            columns.append({
-                'name': name,
-                'type': coltype,
-                'nullable': nullable,
-                'default': default,
-                'primary_key': primary_key
-            })
-        return columns
+        return [
+            {
+                'name': row.column_name,
+                'type': self.ischema_names[row.data_type.upper().split('(')[0]],
+                'nullable': row.is_nullable,
+                'default': row.column_default,
+                'primary_key': row.column_name in primary_key_columns
+            } for row in connection.execute(column_select)
+        ]
 
     @reflection.cache
     def get_unique_constraints(self, connection, table_name, schema=None, **kw):

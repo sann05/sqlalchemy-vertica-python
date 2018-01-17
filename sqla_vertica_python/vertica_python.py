@@ -29,6 +29,7 @@ class VerticaDialect(PGDialect):
         'TIME': sqltypes.TIME,
         'TIME': sqltypes.TIME(timezone=True),
         'TIMESTAMP': sqltypes.TIMESTAMP,
+        'TIMESTAMPTZ': sqltypes.TIMESTAMP(timezone=True),
         'TIMESTAMP WITH TIMEZONE': sqltypes.TIMESTAMP(timezone=True),
 
         # Not supported yet

@@ -234,19 +234,19 @@ class VerticaDialect(PGDialect):
         FROM
             v_catalog.table_constraints cons
         WHERE
+            cons.constraint_type = 'c'
+          AND
             cons.table_id = (
                 SELECT
                     i.table_id
                 FROM
-                    v_catalog.tables i]
+                    v_catalog.tables i
                 WHERE
                     i.table_name='{table_name}'
-                AND
-                    cons.constraint_type = 'c'
                 {schema_clause}
             )
         """.format(table_name=table_name, schema_clause=(
-            "" if schema is None else "AND i.table_schema ='{schema}'".format(schema)))
+            "" if schema is None else "AND i.table_schema ='{schema}'".format(schema=schema)))
 
         return [
             {

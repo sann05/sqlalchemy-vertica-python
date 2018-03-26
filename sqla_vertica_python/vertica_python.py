@@ -136,6 +136,11 @@ class VerticaDialect(PGDialect):
 
 
     @reflection.cache
+    def get_table_comment(self, connection, table_name, schema=None, **kw):
+        raise NotImplementedError
+
+
+    @reflection.cache
     def get_table_names(self, connection, schema=None, **kw):
         s = ["SELECT table_name FROM v_catalog.tables"]
         if schema is not None:

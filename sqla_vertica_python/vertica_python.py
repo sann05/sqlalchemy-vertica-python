@@ -137,7 +137,15 @@ class VerticaDialect(PGDialect):
 
     @reflection.cache
     def get_table_comment(self, connection, table_name, schema=None, **kw):
-        raise NotImplementedError
+        schema_conditional = (
+            "" if schema is None else "AND object_schema = '{schema}'".format(schema=schema))
+        query = """
+        SELECT comment FROM v_catalog.comments WHERE object_type = 'TABLE'
+        AND object_name = '{table_name}'
+        {schema_conditional}
+        """.format(table_name=table_name, schema_conditional=schema_conditional)
+        rs = connection.execute(query)
+        return {"text": rs.scalar()}
 
 
     @reflection.cache

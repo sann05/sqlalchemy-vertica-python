@@ -1,13 +1,14 @@
 from setuptools import setup
 
+version = '0.2.2'
 setup(
     name='sqlalchemy-vertica-python',
-    version='0.2.2',
+    version=version,
     description='Vertica dialect for sqlalchemy using vertica_python',
     long_description=open("README.rst").read(),
     license="MIT",
     url='https://github.com/LocusEnergy/sqlalchemy-vertica-python',
-    download_url = 'https://github.com/LocusEnergy/sqlalchemy-vertica-python/tarball/0.2.1',
+    download_url = 'https://github.com/LocusEnergy/sqlalchemy-vertica-python/tarball/{}'.format(version),
     author='Locus Energy',
     author_email='dbio@locusenergy.com',
     packages=[

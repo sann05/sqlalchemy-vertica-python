@@ -2,7 +2,7 @@ from setuptools import setup
 
 setup(
     name='sqlalchemy-vertica-python',
-    version='0.2.1',
+    version='0.2.2',
     description='Vertica dialect for sqlalchemy using vertica_python',
     long_description=open("README.rst").read(),
     license="MIT",

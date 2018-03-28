@@ -1,6 +1,7 @@
 import re
 from sqlalchemy import types as sqltypes
 from sqlalchemy.dialects.postgresql.base import PGDialect
+from sqlalchemy.dialects.postgresql import INTERVAL
 from sqlalchemy.engine import reflection
 
 
@@ -14,6 +15,7 @@ class VerticaDialect(PGDialect):
     ischema_names = {
         'BINARY': sqltypes.BLOB,
         'VARBINARY': sqltypes.BLOB,
+        'LONG VARBINARY': sqltypes.BLOB,
         'BYTEA': sqltypes.BLOB,
         'RAW': sqltypes.BLOB,
 
@@ -21,6 +23,7 @@ class VerticaDialect(PGDialect):
 
         'CHAR': sqltypes.CHAR,
         'VARCHAR': sqltypes.VARCHAR,
+        'LONG VARCHAR': sqltypes.VARCHAR,
         'VARCHAR2': sqltypes.VARCHAR,
 
         'DATE': sqltypes.DATE,
@@ -32,8 +35,7 @@ class VerticaDialect(PGDialect):
         'TIMESTAMPTZ': sqltypes.TIMESTAMP(timezone=True),
         'TIMESTAMP WITH TIMEZONE': sqltypes.TIMESTAMP(timezone=True),
 
-        # Not supported yet
-        # INTERVAL
+        'INTERVAL': INTERVAL,
 
         # All the same internal representation
         'FLOAT': sqltypes.FLOAT,

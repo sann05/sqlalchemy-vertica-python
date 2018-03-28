@@ -190,7 +190,7 @@ class VerticaDialect(PGDialect):
         FROM v_catalog.columns
         where table_name = '{table_name}'
         {schema_conditional}
-        UNION ALL
+        UNION 
         SELECT
           column_name,
           data_type,
@@ -200,15 +200,54 @@ class VerticaDialect(PGDialect):
         where table_name = '{table_name}'
         {schema_conditional}
         """.format(table_name=table_name, schema_conditional=schema_conditional)
-        return [
-            {
-                'name': row.column_name,
-                'type': self.ischema_names[row.data_type.upper().split('(')[0]],
-                'nullable': row.is_nullable,
-                'default': row.column_default,
-                'primary_key': row.column_name in primary_key_columns
-            } for row in connection.execute(column_select)
+        colobjs = [ 
+            self._get_column_info(
+                row.column_name, 
+                row.data_type, 
+                row.is_nullable,
+                row.column_default,
+                (row.column_name in primary_key_columns)
+                )
+            for row in connection.execute(column_select)
         ]
+        return [ c for c in colobjs if c ]
+
+    def _get_column_info(self, name, data_type, is_nullable, default, is_primary_key):
+        m = re.match(r'(\w+)(?:\((\d+)(?:,(\d+))?\))?', data_type)
+        if not m:
+            return {}
+        typename = m.group(1).upper()
+        typeobj = self.ischema_names[typename]
+        typeargs = []
+        typekwargs = {}
+        if m.group(2):
+            try:
+                v = int(m.group(2))
+                typeargs.append(v)
+            except ValueError:
+                pass
+        if m.group(3):
+            try:
+                v = int(m.group(3))
+                typeargs.append(v)
+            except ValueError:
+                pass
+
+        if 'TIMEZONE' in typename or 'TIME ZONE' in typename:
+            typekwargs['timezone'] = True
+
+        if callable(typeobj):
+            typeargs = tuple(typeargs)
+            typeobj = typeobj(*typeargs, **typekwargs)
+
+        return {
+            'name': name,
+            'type': typeobj,
+            'nullable': is_nullable,
+            'default': default,
+            'primary_key': is_primary_key
+        } 
+
 
     @reflection.cache
     def get_unique_constraints(self, connection, table_name, schema=None, **kw):

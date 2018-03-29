@@ -200,44 +200,39 @@ class VerticaDialect(PGDialect):
         where table_name = '{table_name}'
         {schema_conditional}
         """.format(table_name=table_name, schema_conditional=schema_conditional)
-        colobjs = [ 
-            self._get_column_info(
-                row.column_name, 
-                row.data_type, 
-                row.is_nullable,
-                row.column_default,
-                (row.column_name in primary_key_columns)
-                )
-            for row in connection.execute(column_select)
-        ]
-        return [ c for c in colobjs if c ]
+        colobjs = []
+        for row in connection.execute(column_select):
+              colobj = self._get_column_info(
+                  row.column_name, 
+                  row.data_type, 
+                  row.is_nullable,
+                  row.column_default,
+                  (row.column_name in primary_key_columns)
+              )
+              if colobj:
+                  colobjs.append(colobj)
+        return colobjs
 
     def _get_column_info(self, name, data_type, is_nullable, default, is_primary_key):
         m = re.match(r'(\w+)(?:\((\d+)(?:,(\d+))?\))?', data_type)
         if not m:
-            return {}
+            raise ValueError("data type string not parseable for type name and optional parameters: %s" % data_type)
         typename = m.group(1).upper()
         typeobj = self.ischema_names[typename]
         typeargs = []
         typekwargs = {}
-        if m.group(2):
+        for arg_group in (2, 3):
             try:
-                v = int(m.group(2))
-                typeargs.append(v)
-            except ValueError:
-                pass
-        if m.group(3):
-            try:
-                v = int(m.group(3))
-                typeargs.append(v)
-            except ValueError:
+                param = m.group(arg_group)
+                if param:
+                    typeargs.append(int(param))
+            except (TypeError, ValueError):
                 pass
 
-        if 'TIMEZONE' in typename or 'TIME ZONE' in typename:
+        if any(tz_string in typename for tz_string in ('TIMEZONE', 'TIME ZONE', 'TIMESTAMPTZ')):
             typekwargs['timezone'] = True
 
         if callable(typeobj):
-            typeargs = tuple(typeargs)
             typeobj = typeobj(*typeargs, **typekwargs)
 
         return {

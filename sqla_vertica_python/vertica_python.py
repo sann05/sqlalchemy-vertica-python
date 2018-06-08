@@ -9,8 +9,10 @@ class VerticaDialect(PGDialect):
     """ Vertica Dialect using a vertica-python connection and PGDialect """
 
     name = 'vertica'
-
     driver = 'vertica_python'
+    
+    supports_unicode_statements = True
+    supports_unicode_binds = True
 
     ischema_names = {
         'BINARY': sqltypes.BLOB,

@@ -11,6 +11,8 @@ class VerticaDialect(PGDialect):
     name = 'vertica'
 
     driver = 'vertica_python'
+    
+    supports_native_decimal = True
 
     ischema_names = {
         'BINARY': sqltypes.BLOB,

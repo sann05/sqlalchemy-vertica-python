@@ -13,6 +13,7 @@ class VerticaDialect(PGDialect):
     
     supports_unicode_statements = True
     supports_unicode_binds = True
+    supports_native_decimal = True
 
     ischema_names = {
         'BINARY': sqltypes.BLOB,

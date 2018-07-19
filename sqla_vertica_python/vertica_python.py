@@ -28,6 +28,7 @@ class VerticaDialect(PGDialect):
         'VARCHAR': sqltypes.VARCHAR,
         'LONG VARCHAR': sqltypes.VARCHAR,
         'VARCHAR2': sqltypes.VARCHAR,
+        'TEXT': sqltypes.VARCHAR,
 
         'DATE': sqltypes.DATE,
         'DATETIME': sqltypes.DATETIME,

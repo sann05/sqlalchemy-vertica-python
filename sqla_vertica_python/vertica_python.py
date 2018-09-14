@@ -192,7 +192,8 @@ class VerticaDialect(PGDialect):
           column_name,
           data_type,
           column_default,
-          is_nullable
+          is_nullable,
+          is_identity
         FROM v_catalog.columns
         where table_name = '{table_name}'
         {schema_conditional}
@@ -201,25 +202,49 @@ class VerticaDialect(PGDialect):
           column_name,
           data_type,
           '' as column_default,
-          true as is_nullable
+          true as is_nullable,
+          false as is_identity
         FROM v_catalog.view_columns
         where table_name = '{table_name}'
         {schema_conditional}
         """.format(table_name=table_name, schema_conditional=schema_conditional)
         colobjs = []
-        for row in connection.execute(column_select):
-              colobj = self._get_column_info(
-                  row.column_name, 
-                  row.data_type, 
-                  row.is_nullable,
-                  row.column_default,
-                  (row.column_name in primary_key_columns)
-              )
-              if colobj:
-                  colobjs.append(colobj)
+        column_select_results = list(connection.execute(column_select))
+        for row in column_select_results:
+            if row.is_identity:
+                # get sequence info.
+                seqinfo = connection.execute("""
+                    SELECT 
+                    sequence_name as name,
+                    minimum as start,
+                    increment_by as increment
+                    FROM v_catalog.sequences
+                    WHERE identity_table_name = '{table_name}'
+                    {schema_conditional}
+                    """.format(
+                        table_name=table_name,
+                        schema_conditional=(
+                            "" if schema is None 
+                            else "AND sequence_schema = '{schema}'".format(schema=schema)
+                        )
+                    )
+                ).fetchone()
+            else:
+                seqinfo = None
+            colobj = self._get_column_info(
+                row.column_name, 
+                row.data_type, 
+                row.is_nullable,
+                row.column_default,
+                row.is_identity,
+                (row.column_name in primary_key_columns),
+                seqinfo
+            )
+            if colobj:
+                colobjs.append(colobj)
         return colobjs
 
-    def _get_column_info(self, name, data_type, is_nullable, default, is_primary_key):
+    def _get_column_info(self, name, data_type, is_nullable, default, is_identity, is_primary_key, sequence):
         m = re.match(r'(\w+)(?:\((\d+)(?:,(\d+))?\))?', data_type)
         if not m:
             raise ValueError("data type string not parseable for type name and optional parameters: %s" % data_type)
@@ -241,14 +266,18 @@ class VerticaDialect(PGDialect):
         if callable(typeobj):
             typeobj = typeobj(*typeargs, **typekwargs)
 
-        return {
+        cinfo = {
             'name': name,
             'type': typeobj,
             'nullable': is_nullable,
             'default': default,
-            'primary_key': is_primary_key
+            'primary_key': (is_primary_key or is_identity)
         } 
-
+        if is_identity:
+            cinfo['autoincrement'] = True
+        if sequence:
+            cinfo['sequence'] = dict(sequence)
+        return cinfo
 
     @reflection.cache
     def get_unique_constraints(self, connection, table_name, schema=None, **kw):

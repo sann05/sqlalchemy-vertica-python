@@ -210,27 +210,24 @@ class VerticaDialect(PGDialect):
         """.format(table_name=table_name, schema_conditional=schema_conditional)
         colobjs = []
         column_select_results = list(connection.execute(column_select))
-        for row in column_select_results:
-            if row.is_identity:
-                # get sequence info.
-                seqinfo = connection.execute("""
-                    SELECT 
-                    sequence_name as name,
-                    minimum as start,
-                    increment_by as increment
-                    FROM v_catalog.sequences
-                    WHERE identity_table_name = '{table_name}'
-                    {schema_conditional}
-                    """.format(
-                        table_name=table_name,
-                        schema_conditional=(
-                            "" if schema is None 
-                            else "AND sequence_schema = '{schema}'".format(schema=schema)
-                        )
+        for row in list(connection.execute(column_select)):
+            sequence_info = connection.execute("""
+                SELECT 
+                sequence_name as name,
+                minimum as start,
+                increment_by as increment
+                FROM v_catalog.sequences
+                WHERE identity_table_name = '{table_name}'
+                {schema_conditional}
+                """.format(
+                    table_name=table_name,
+                    schema_conditional=(
+                        "" if schema is None 
+                        else "AND sequence_schema = '{schema}'".format(schema=schema)
                     )
-                ).fetchone()
-            else:
-                seqinfo = None
+                )
+            ).first() if row.is_identity else None
+
             colobj = self._get_column_info(
                 row.column_name, 
                 row.data_type, 
@@ -238,7 +235,7 @@ class VerticaDialect(PGDialect):
                 row.column_default,
                 row.is_identity,
                 (row.column_name in primary_key_columns),
-                seqinfo
+                sequence_info
             )
             if colobj:
                 colobjs.append(colobj)
@@ -266,7 +263,7 @@ class VerticaDialect(PGDialect):
         if callable(typeobj):
             typeobj = typeobj(*typeargs, **typekwargs)
 
-        cinfo = {
+        column_info = {
             'name': name,
             'type': typeobj,
             'nullable': is_nullable,
@@ -274,10 +271,10 @@ class VerticaDialect(PGDialect):
             'primary_key': (is_primary_key or is_identity)
         } 
         if is_identity:
-            cinfo['autoincrement'] = True
+            column_info['autoincrement'] = True
         if sequence:
-            cinfo['sequence'] = dict(sequence)
-        return cinfo
+            column_info['sequence'] = dict(sequence)
+        return column_info
 
     @reflection.cache
     def get_unique_constraints(self, connection, table_name, schema=None, **kw):

@@ -60,6 +60,10 @@ class VerticaDialect(PGDialect):
         'MONEY': sqltypes.NUMERIC,
     }
 
+    # skip all the version-specific stuff in PGDialect's initialize method (Vertica versions don't match feature-wise)
+    def initialize(self, connection):
+        super(PGDialect, self).initialize(connection)
+        self.implicit_returning = False
 
     @classmethod
     def dbapi(cls):

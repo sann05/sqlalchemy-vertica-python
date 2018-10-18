@@ -66,9 +66,11 @@ class VerticaDialect(PGDialect):
         self.implicit_returning = False
 
     def is_disconnect(self, e, connection, cursor):
-        if isinstance(e, self.dbapi.Error) and connection is not None:
-            return connection.closed()
-        return False
+        return (
+            isinstance(e, self.dbapi.Error) and
+            connection is not None and
+            connection.closed()
+        )
 
     @classmethod
     def dbapi(cls):

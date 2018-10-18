@@ -67,13 +67,6 @@ class VerticaDialect(PGDialect):
 
     def is_disconnect(self, e, connection, cursor):
         if isinstance(e, self.dbapi.Error) and connection is not None:
-            try:
-                connection = connection.connection
-            except AttributeError:
-                pass
-            else:
-                if connection is None:
-                    return False
             return connection.closed()
         return False
 

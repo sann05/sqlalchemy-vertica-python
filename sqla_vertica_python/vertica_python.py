@@ -65,6 +65,13 @@ class VerticaDialect(PGDialect):
         super(PGDialect, self).initialize(connection)
         self.implicit_returning = False
 
+    def is_disconnect(self, e, connection, cursor):
+        return (
+            isinstance(e, self.dbapi.Error) and
+            connection is not None and
+            connection.closed()
+        )
+
     @classmethod
     def dbapi(cls):
         vp_module = __import__('vertica_python')

@@ -253,7 +253,7 @@ class VerticaDialect(PGDialect):
         return colobjs
 
     def _get_column_info(self, name, data_type, is_nullable, default, is_identity, is_primary_key, sequence):
-        m = re.match(r'(\w+)(?:\((\d+)(?:,(\d+))?\))?', data_type)
+        m = re.match(r'(\w[ \w]*\w)(?:\((\d+)(?:,(\d+))?\))?', data_type)
         if not m:
             raise ValueError("data type string not parseable for type name and optional parameters: %s" % data_type)
         typename = m.group(1).upper()

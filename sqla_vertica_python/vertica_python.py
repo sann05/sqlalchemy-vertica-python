@@ -3,6 +3,17 @@ from sqlalchemy import types as sqltypes
 from sqlalchemy.dialects.postgresql.base import PGDialect
 from sqlalchemy.dialects.postgresql import INTERVAL
 from sqlalchemy.engine import reflection
+from sqlalchemy.schema import CreateColumn
+from sqlalchemy.ext.compiler import compiles
+
+
+# From Postgresql 10 IDENTITY columns section in sqlalchemy/dialects/postgresql/base.py
+@compiles(CreateColumn, 'vertica')
+def use_identity(element, compiler, **kw):
+    text = compiler.visit_create_column(element, **kw)
+    text = text.replace("SERIAL", "IDENTITY(1,1)")
+    return text
+
 
 class VerticaDialect(PGDialect):
     """ Vertica Dialect using a vertica-python connection and PGDialect """

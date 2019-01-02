@@ -21,6 +21,9 @@ class VerticaDialect(PGDialect):
     name = 'vertica'
     driver = 'vertica_python'
     
+    # UPDATE functionality works with the following option set to False
+    supports_sane_rowcount = False
+    
     supports_unicode_statements = True
     supports_unicode_binds = True
     supports_native_decimal = True

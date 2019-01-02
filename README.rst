@@ -22,3 +22,17 @@ From git: ::
      git clone https://github.com/LocusEnergy/vertica-sqlalchemy 
      cd vertica-sqlalchemy
      python setup.py install
+     
+
+Usage
+------------
+
+**ID/Primary Key Declaration**
+
+Do not use this. The INSERT will fail as it will try to insert the ID
+
+    id = Column(Integer, primary_key=True)
+
+Do the following instead
+
+    id = Column(Integer, Sequence('user_id_seq'), primary_key=True)

@@ -19,7 +19,7 @@ setup(
     vertica.vertica_python = sqla_vertica_python.vertica_python:VerticaDialect
     """,
     install_requires=[
-        'vertica_python'
+        'vertica_python[namedparams]'
     ],
 )
 

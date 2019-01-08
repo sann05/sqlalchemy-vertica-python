@@ -20,10 +20,10 @@ class VerticaDialect(PGDialect):
 
     name = 'vertica'
     driver = 'vertica_python'
-    
+
     # UPDATE functionality works with the following option set to False
     supports_sane_rowcount = False
-    
+
     supports_unicode_statements = True
     supports_unicode_binds = True
     supports_native_decimal = True
@@ -307,10 +307,10 @@ class VerticaDialect(PGDialect):
         query = None
         if schema is not None:
             query = "select constraint_id, constraint_name, column_name from v_catalog.constraint_columns \n\
-            WHERE table_name = '" + table_name + "' AND table_schema = '" + schema + "'"
+            WHERE table_name = '" + table_name + "' AND table_schema = '" + schema + "' AND constraint_type = 'u'"
         else:
             query = "select constraint_id, constraint_name, column_name from v_catalog.constraint_columns \n\
-            WHERE table_name = '" + table_name + "'"
+            WHERE table_name = '" + table_name + "' AND constraint_type = 'u'"
 
         rs = connection.execute(query)
 
@@ -362,8 +362,25 @@ class VerticaDialect(PGDialect):
     # constraints are enforced on selects, but returning nothing for these
     # methods allows table introspection to work
 
-    def get_pk_constraint(self, bind, table_name, schema, **kw):
-        return {'constrained_columns': [], 'name': 'undefined'}
+    @reflection.cache
+    def get_pk_constraint(self, connection, table_name, schema=None, **kw):
+        query = None
+        query = None
+        if schema is not None:
+            query = "select constraint_id, constraint_name, column_name from v_catalog.constraint_columns \n\
+            WHERE table_name = '" + table_name + "' AND table_schema = '" + schema + "' \n\
+                  AND constraint_type = 'p'"
+        else:
+            query = "select constraint_id, constraint_name, column_name from v_catalog.constraint_columns \n\
+            WHERE table_name = '" + table_name + "' \n\
+                  AND constraint_type = 'p'"
+
+        rs = connection.execute(query)
+
+        cols = {row[2] for row in rs}
+        name = {row[1] for row in rs}
+
+        return {"constrained_columns": cols, "name": name}
 
 
     def get_foreign_keys(self, connection, table_name, schema, **kw):

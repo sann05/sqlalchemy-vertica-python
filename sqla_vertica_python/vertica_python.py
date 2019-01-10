@@ -363,12 +363,11 @@ class VerticaDialect(PGDialect):
     @reflection.cache
     def get_pk_constraint(self, connection, table_name, schema=None, **kw):
         query = "SELECT constraint_id, constraint_name, column_name FROM v_catalog.constraint_columns \n\
-                  WHERE table_name = '" + table_name + "'"
+                 WHERE constraint_type = 'p' AND table_name = '" + table_name + "'"
+
         if schema is not None: 
             query += " AND table_schema = '" + schema + "' \n"
-        query += "AND constraint_type = 'p'"
 
-        rs = connection.execute(query)
         cols = set()
         name = set()
         for row in connection.execute(query):

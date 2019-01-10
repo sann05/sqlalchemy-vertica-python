@@ -304,13 +304,11 @@ class VerticaDialect(PGDialect):
     @reflection.cache
     def get_unique_constraints(self, connection, table_name, schema=None, **kw):
 
-        query = None
+        query = "SELECT constraint_id, constraint_name, column_name FROM v_catalog.constraint_columns \n\
+                 WHERE table_name = '" + table_name + "'"
         if schema is not None:
-            query = "select constraint_id, constraint_name, column_name from v_catalog.constraint_columns \n\
-            WHERE table_name = '" + table_name + "' AND table_schema = '" + schema + "' AND constraint_type = 'u'"
-        else:
-            query = "select constraint_id, constraint_name, column_name from v_catalog.constraint_columns \n\
-            WHERE table_name = '" + table_name + "' AND constraint_type = 'u'"
+             query += " AND table_schema = '" + schema + "'"
+        query += " AND constraint_type = 'u'"
 
         rs = connection.execute(query)
 
@@ -364,21 +362,18 @@ class VerticaDialect(PGDialect):
 
     @reflection.cache
     def get_pk_constraint(self, connection, table_name, schema=None, **kw):
-        query = None
-        query = None
-        if schema is not None:
-            query = "select constraint_id, constraint_name, column_name from v_catalog.constraint_columns \n\
-            WHERE table_name = '" + table_name + "' AND table_schema = '" + schema + "' \n\
-                  AND constraint_type = 'p'"
-        else:
-            query = "select constraint_id, constraint_name, column_name from v_catalog.constraint_columns \n\
-            WHERE table_name = '" + table_name + "' \n\
-                  AND constraint_type = 'p'"
+        query = "SELECT constraint_id, constraint_name, column_name FROM v_catalog.constraint_columns \n\
+                  WHERE table_name = '" + table_name + "'"
+        if schema is not None: 
+            query += " AND table_schema = '" + schema + "' \n"
+        query += "AND constraint_type = 'p'"
 
         rs = connection.execute(query)
-
-        cols = {row[2] for row in rs}
-        name = {row[1] for row in rs}
+        cols = set()
+        name = set()
+        for row in connection.execute(query):
+             name.add(row[1])
+             cols.add(row[2])
 
         return {"constrained_columns": cols, "name": name}
 

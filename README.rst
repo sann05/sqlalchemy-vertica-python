@@ -24,7 +24,7 @@ From PyPI: ::
 From git: ::
 
      git clone https://github.com/bluelabsio/vertica-sqlalchemy-python
-     cd vertica-sqlalchemy
+     cd vertica-sqlalchemy-python
      python setup.py install
      
 

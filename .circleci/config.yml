@@ -157,7 +157,7 @@ workflows:
             tags:
               only: /v\d+\.\d+\.\d+(-[\w]+)?/
       - deploy:
-          context: Artifactory
+          context: PyPI
           requires:
             - test-3.5
             - test-3.6

@@ -10,7 +10,7 @@ setup(
     license="MIT",
     url='https://github.com/bluelabsio/sqlalchemy-vertica-python',
     download_url = 'https://github.com/bluelabsio/sqlalchemy-vertica-python/tarball/{}'.format(__version__),
-    author='Luke Emery-Fertitta',
+    author='James Casbon, Luke Emery-Fertitta',
     maintainer='Vince Broz',
     maintainer_email='opensource@bluelabs.com',
     packages=[

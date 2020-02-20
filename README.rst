@@ -23,7 +23,7 @@ From PyPI: ::
 
 From git: ::
 
-     git clone https://github.com/bluelabsio/vertica-sqlalchemy
+     git clone https://github.com/bluelabsio/vertica-sqlalchemy-python
      cd vertica-sqlalchemy
      python setup.py install
      

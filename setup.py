@@ -1,7 +1,7 @@
 from setuptools import setup
 from setuputils import TestCoverageRatchetCommand, VerifyVersionCommand
 
-__version__ = '0.5.1'
+__version__ = '0.5.2'
 setup(
     name='sqlalchemy-vertica-python',
     version=__version__,

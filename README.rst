@@ -3,7 +3,11 @@ sqlalchemy-vertica-python
 
 Vertica dialect for sqlalchemy. Forked from the `Vertica ODBC dialect <https://pypi.python.org/pypi/vertica-sqlalchemy>`_.
 
-This module implements a Vertica dialect for SQLAlchemy using `vertica-python <https://github.com/uber/vertica-python>`_. Engine creation: 
+This module implements a Vertica dialect for SQLAlchemy using `vertica-python <https://github.com/uber/vertica-python>`_
+
+This code was written by `Luke Emery-Fertitta <https://github.com/lemeryfertitta>`.  It is currently maintained by `BlueLabs <https://bluelabs.com/>`_ - PRs are welcome!
+
+Engine creation:
 
 .. code-block:: python
 
@@ -19,7 +23,7 @@ From PyPI: ::
 
 From git: ::
 
-     git clone https://github.com/LocusEnergy/vertica-sqlalchemy 
+     git clone https://github.com/bluelabsio/vertica-sqlalchemy
      cd vertica-sqlalchemy
      python setup.py install
      

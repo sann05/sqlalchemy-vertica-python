@@ -18,7 +18,6 @@ def use_identity(element, compiler, **kw):
 class VerticaDialect(PGDialect):
     """ Vertica Dialect using a vertica-python connection and PGDialect """
 
-    name = 'vertica'
     driver = 'vertica_python'
 
     # UPDATE functionality works with the following option set to False
